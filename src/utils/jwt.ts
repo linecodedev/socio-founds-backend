@@ -12,10 +12,10 @@ export interface JwtPayload {
 }
 
 export function generateToken(payload: JwtPayload): string {
-  const options: SignOptions = {
-    expiresIn: config.jwt.expiresIn as string,
-  };
-  return jwt.sign(payload, config.jwt.secret, options);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return jwt.sign(payload, config.jwt.secret, {
+    expiresIn: config.jwt.expiresIn as any,
+  });
 }
 
 export function verifyToken(token: string): JwtPayload {
