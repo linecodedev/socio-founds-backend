@@ -9,7 +9,10 @@ export async function login(req: Request, res: Response): Promise<void> {
   try {
     const { email, password }: LoginRequest = req.body;
 
+    console.log('Login attempt:', { email, passwordLength: password?.length });
+
     if (!email || !password) {
+      console.log('Missing email or password');
       sendError(res, 'Email and password are required', 400);
       return;
     }
@@ -23,19 +26,25 @@ export async function login(req: Request, res: Response): Promise<void> {
       },
     });
 
+    console.log('User found:', user ? { id: user.id, email: user.email, status: user.status } : null);
+
     if (!user) {
+      console.log('User not found');
       sendError(res, 'Invalid email or password', 401);
       return;
     }
 
     if (user.status === 'inactive') {
+      console.log('User inactive');
       sendError(res, 'Your account has been deactivated', 401);
       return;
     }
 
     const isValidPassword = await comparePassword(password, user.password);
+    console.log('Password valid:', isValidPassword);
 
     if (!isValidPassword) {
+      console.log('Invalid password');
       sendError(res, 'Invalid email or password', 401);
       return;
     }
