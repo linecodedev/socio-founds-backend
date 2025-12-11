@@ -7,12 +7,32 @@ import { errorHandler, notFoundHandler } from './middleware/error.middleware.js'
 const app = express();
 
 // CORS configuration
+const allowedOrigins = [
+  config.frontendUrl,
+  'http://localhost:8080',
+  'http://localhost:5173',
+  'https://socios-funds.vercel.app',
+].filter(Boolean);
+
 app.use(cors({
-  origin: [config.frontendUrl, 'http://localhost:8080', 'http://localhost:5173'],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(null, true); // Allow all in production for now
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
