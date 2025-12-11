@@ -32,6 +32,7 @@ export async function authenticate(
           role: true,
           status: true,
           cooperativeId: true,
+          memberId: true,
         },
       });
 
@@ -51,6 +52,7 @@ export async function authenticate(
         name: user.name,
         role: user.role,
         cooperativeId: user.cooperativeId,
+        memberId: user.memberId || undefined,
       };
 
       next();

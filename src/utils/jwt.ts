@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { config } from '../config/env.js';
 import { UserRole } from '@prisma/client';
 
@@ -8,12 +8,14 @@ export interface JwtPayload {
   name: string;
   role: UserRole;
   cooperativeId: string | null;
+  memberId?: string;
 }
 
 export function generateToken(payload: JwtPayload): string {
-  return jwt.sign(payload, config.jwt.secret, {
-    expiresIn: config.jwt.expiresIn,
-  });
+  const options: SignOptions = {
+    expiresIn: config.jwt.expiresIn as string,
+  };
+  return jwt.sign(payload, config.jwt.secret, options);
 }
 
 export function verifyToken(token: string): JwtPayload {

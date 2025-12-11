@@ -9,6 +9,7 @@ export interface AuthRequest extends Request {
     name: string;
     role: UserRole;
     cooperativeId: string | null;
+    memberId?: string;
   };
 }
 

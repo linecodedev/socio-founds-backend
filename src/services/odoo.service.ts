@@ -23,9 +23,9 @@ class OdooService {
       commonClient.methodCall(
         'authenticate',
         [config.database, config.username, config.apiKey, {}],
-        (error: Error | null, uid: number) => {
+        (error: any, uid: number) => {
           if (error) {
-            reject(new Error(`Odoo authentication failed: ${error.message}`));
+            reject(new Error(`Odoo authentication failed: ${error?.message || error}`));
           } else if (!uid) {
             reject(new Error('Invalid Odoo credentials'));
           } else {
@@ -55,9 +55,9 @@ class OdooService {
       objectClient.methodCall(
         'execute_kw',
         [config.database, config.uid, config.apiKey, model, method, args],
-        (error: Error | null, result: T) => {
+        (error: any, result: T) => {
           if (error) {
-            reject(new Error(`Odoo execute failed: ${error.message}`));
+            reject(new Error(`Odoo execute failed: ${error?.message || error}`));
           } else {
             resolve(result);
           }
