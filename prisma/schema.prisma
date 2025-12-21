@@ -66,6 +66,7 @@ model ActivityLog {
 model Cooperative {
   id        String   @id @default(uuid())
   name      String
+  type      String?  // ahorro-credito, vivienda, consumo, produccion, servicios, otra
   ruc       String?
   address   String?
   phone     String?

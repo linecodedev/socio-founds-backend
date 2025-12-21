@@ -228,3 +228,96 @@ export async function getUserActivity(req: AuthRequest, res: Response): Promise<
     sendError(res, 'Failed to get activity', 500);
   }
 }
+
+// Register new cooperative and admin user
+export async function register(req: Request, res: Response): Promise<void> {
+  try {
+    const { cooperativeName, cooperativeType, name, email, password } = req.body;
+
+    // Validate required fields
+    if (!cooperativeName || !cooperativeType || !name || !email || !password) {
+      sendError(res, 'All fields are required', 400);
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      sendError(res, 'Invalid email format', 400);
+      return;
+    }
+
+    // Validate password strength
+    if (password.length < 8) {
+      sendError(res, 'Password must be at least 8 characters', 400);
+      return;
+    }
+
+    // Check if email already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+
+    if (existingUser) {
+      sendError(res, 'Email already registered', 400);
+      return;
+    }
+
+    // Hash password
+    const hashedPassword = await hashPassword(password);
+
+    // Create cooperative and admin user in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Create cooperative
+      const cooperative = await tx.cooperative.create({
+        data: {
+          name: cooperativeName,
+          type: cooperativeType,
+          settings: {
+            create: {
+              emailNotifications: true,
+              uploadNotifications: true,
+              paymentReminders: false,
+              twoFactorAuth: false,
+              sessionTimeout: true,
+              autoBackup: true,
+            },
+          },
+        },
+      });
+
+      // Create admin user
+      const user = await tx.user.create({
+        data: {
+          email: email.toLowerCase(),
+          password: hashedPassword,
+          name,
+          role: 'admin',
+          status: 'active',
+          cooperativeId: cooperative.id,
+        },
+      });
+
+      // Log activity
+      await tx.activityLog.create({
+        data: {
+          userId: user.id,
+          action: 'Cuenta creada',
+          details: `Cooperativa: ${cooperativeName}`,
+          ipAddress: req.ip,
+        },
+      });
+
+      return { cooperative, user };
+    });
+
+    sendSuccess(res, {
+      message: 'Registration successful',
+      cooperativeId: result.cooperative.id,
+      userId: result.user.id,
+    }, 'Registration successful', 201);
+  } catch (error) {
+    console.error('Registration error:', error);
+    sendError(res, 'Registration failed', 500);
+  }
+}

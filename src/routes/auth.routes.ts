@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware.js';
 import {
   login,
+  register,
   logout,
   getCurrentUser,
   changePassword,
@@ -12,6 +13,7 @@ const router = Router();
 
 // Public routes
 router.post('/login', login);
+router.post('/register', register);
 
 // Protected routes
 router.post('/logout', authenticate, logout);
