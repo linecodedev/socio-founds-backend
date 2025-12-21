@@ -76,10 +76,10 @@ export async function createUser(req: AuthRequest, res: Response): Promise<void>
     const userPassword = password || generateRandomPassword();
     const hashedPassword = await hashPassword(userPassword);
 
-    // Generate unique member ID by finding the highest existing memberId
+    // Generate unique member ID by finding the highest existing memberId globally
+    // (memberId is globally unique, not per-cooperative)
     const allUsers = await prisma.user.findMany({
       where: {
-        cooperativeId,
         memberId: { not: null }
       },
       select: { memberId: true },
@@ -87,7 +87,7 @@ export async function createUser(req: AuthRequest, res: Response): Promise<void>
 
     let nextMemberId = 'M001';
     if (allUsers.length > 0) {
-      // Find the highest member number
+      // Find the highest member number across all cooperatives
       const memberNumbers = allUsers
         .map(u => parseInt(u.memberId?.replace('M', '') || '0'))
         .filter(n => !isNaN(n));
